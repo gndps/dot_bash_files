@@ -181,15 +181,13 @@ bfcli() {
             configure_environment
             exit 1
         fi
-        
-        # Always configure 'default' profile first
-        configure_environment 'default'
 
         # Configure additional profiles, if any
         for profile in "$@"; do
             configure_environment "$profile"
         done
 
+        source $HOME/.bash_profile
         clone_all_repos
         init_bash_files
     elif [[ "$1" == "pull" ]]; then

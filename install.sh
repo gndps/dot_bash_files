@@ -40,7 +40,12 @@ fi
 source $TARGET_DIR/bfcli
 
 # Run bfcli init default
-echo "Initializing bfcli..."
+echo "Initializing bfcli with default config..."
 bfcli init default
 
 echo "Installation complete!"
+echo
+echo "Now you can initialize os specific or machine specific profiles"
+echo "Run following to list profiles:"
+echo "bfcli init"
+echo
