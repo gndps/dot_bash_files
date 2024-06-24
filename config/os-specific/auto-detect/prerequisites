@@ -75,4 +75,14 @@ done
 # Export the new PATH for the current shell session
 export PATH="$PATH:$BASH_FILES_DIR/bin"
 
-echo "fd and jq have been installed and PATH updated."
+# Verify installation of fd and jq
+if command -v fd > /dev/null 2>&1 && command -v jq > /dev/null 2>&1; then
+  BASH_FILES_PREREQUISITES_INSTALLED=1
+  echo "fd and jq have been installed and PATH updated."
+else
+  BASH_FILES_PREREQUISITES_INSTALLED=0
+  echo "Prerequisite installing failed!"
+  echo "Please install fd and jq manually and install bash_files again"
+fi
+
+export BASH_FILES_PREREQUISITES_INSTALLED
