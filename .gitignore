@@ -5,3 +5,4 @@ source_files_list
 repos
 .bfignore_merged
 *.bflist
+bin

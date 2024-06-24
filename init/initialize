@@ -53,8 +53,13 @@ source_files() {
 
 init_bash_files() {
     # Main script logic
-    chmod +x "$SCRIPT_DIR/generate_files"
-    "$SCRIPT_DIR/generate_files"         && echo Files list generated ✔ || echo generate_files failed!
+    echo "sourcing $BASH_FILES_DIR/init/generate_files"
+    source $BASH_FILES_DIR/init/generate_files
+    echo
+    echo "Generating files..."
+    run_generate_files                   && echo Files list generated ✔ || echo generate_files failed!
+    echo
+    echo "Sourcing files..."
     source_files                         && echo Files sourced ✔ || echo source_files failed!
 
     echo Bash files initialization complete ✔✔

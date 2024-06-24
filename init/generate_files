@@ -6,7 +6,7 @@ generate_source_files_list() {
     > "$OUTPUT_FILE"
 
     # Use fd to find all files (excluding directories) and source them
-    fd . "$BASH_FILES_DIR" -Ha -t f --ignore-file "$BASH_FILES_DIR"/.bfignore_merged | while IFS= read -r file; do
+    fd . "$BASH_FILES_DIR" -HIa -t f --ignore-file "$BASH_FILES_DIR"/.bfignore_merged | while IFS= read -r file; do
         # source "$file"
         chmod +x $file
         echo "source $file" >> "$OUTPUT_FILE"
@@ -40,9 +40,7 @@ merge_ignore_files() {
     done
 }
 
-generate_files() {
+run_generate_files() {
     merge_ignore_files
     generate_source_files_list
 }
-
-generate_files

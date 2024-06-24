@@ -6,6 +6,11 @@ OS="$(uname -s)"
 # Define the installation directory
 BF_BIN_DIR="$BASH_FILES_DIR/bin"
 
+if [ -x "$BF_BIN_DIR/fd" ] && [ -x "$BF_BIN_DIR/jq" ]; then
+    echo "Both fd and jq are present."
+    exit  # or return if inside a function
+fi
+
 # Create the bin directory if it doesn't exist
 mkdir -p "$BF_BIN_DIR"
 Using bin dir: "$BF_BIN_DIR"
@@ -68,6 +73,7 @@ PROFILE_FILES=("$HOME/.bash_profile" "$HOME/.bashrc")
 
 for file in "${PROFILE_FILES[@]}"; do
   if ! grep -q 'export PATH="$PATH:$BASH_FILES_DIR/bin"' "$file"; then
+    echo '' >> "$file"
     echo 'export PATH="$PATH:$BASH_FILES_DIR/bin"' >> "$file"
   fi
 done

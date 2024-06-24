@@ -54,12 +54,15 @@ clone_all_repos() {
 
     # Read all repos from the config file
     repos=$(jq -c '.repos[]' "$BFCONFIG_FILE")
+    echo "List of repos to clone:"
+    echo $repos
 
     # Iterate over each repo in the JSON array
     echo "$repos" | while IFS= read -r repo; do
         # Extract repo details using jq
         repo_name=$(echo "$repo" | jq -r '.name // empty')
         repo_url=$(echo "$repo" | jq -r '.url')
+        echo "Cloning $repo_url"
 
         # Default the directory name to the repo name or part of the URL if name is missing
         if [[ -z $repo_name ]]; then
@@ -188,8 +191,11 @@ bfcli() {
         done
 
         source $HOME/.bash_profile
+        echo "sourced $HOME/.bash_profile"
         clone_all_repos
+        echo "Cloning repos complete"
         init_bash_files
+        echo "init_bash_files complete"
     elif [[ "$1" == "pull" ]]; then
         auto_pull_repos
     elif [[ "$1" == "push" ]]; then
