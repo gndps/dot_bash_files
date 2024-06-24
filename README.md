@@ -13,6 +13,7 @@ The installation script automatically installs `jq` and `fd`
 # Installation
 ```
 bash <(curl -s https://raw.githubusercontent.com/gndps/dot_bash_files/main/install.sh)
+source $HOME/.bash_profile && bfcli init default
 ```
 
 # Customization
