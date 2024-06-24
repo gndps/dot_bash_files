@@ -1,6 +1,6 @@
 [default]
 # each line is executed by initialize individually based on the config(s) selected
-PREREQ="$BASH_FILES_DIR/os-specific/auto-detect/prerequisites"
+PREREQ="$BASH_FILES_DIR/config/os-specific/auto-detect/prerequisites"
 chmod +x $PREREQ && $PREREQ
 echo "SUCCESS: Initialized default profile"
 
@@ -8,7 +8,7 @@ echo "SUCCESS: Initialized default profile"
 echo "Mac OS specific files"
 
 [mac_dp]
-export BFCONFIG_FILE_OVERWRITE="$BASH_FILES_DIR/machine-specific/mac_dp/.bfconfig"
+export BFCONFIG_FILE_OVERWRITE="$BASH_FILES_DIR/config/machine-specific/mac_dp/.bfconfig"
 
 [vm1]
 echo "test"
