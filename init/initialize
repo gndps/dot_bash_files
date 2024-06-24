@@ -54,8 +54,8 @@ source_files() {
 init_bash_files() {
     # Main script logic
     chmod +x "$SCRIPT_DIR/generate_files"
-    "$SCRIPT_DIR/generate_files"         && echo Files list generated ✔
-    source_files                         && echo Files sourced ✔
+    "$SCRIPT_DIR/generate_files"         && echo Files list generated ✔ || echo generate_files failed!
+    source_files                         && echo Files sourced ✔ || echo source_files failed!
 
     echo Bash files initialization complete ✔✔
     echo ---
