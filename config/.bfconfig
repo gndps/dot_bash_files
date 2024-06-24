@@ -6,17 +6,10 @@
   },
     "repos": [
         {
-            "name": "repo_to_txt",
-            "url": "git@github.com:gndps/repo_to_txt.git",
+            "name": "generic_envs",
+            "url": "git@github.com:gndps/generic_envs.git",
             "enable_auto_pull": true,
             "enable_auto_push": true,
-            "source_bash_files": false
-        },
-        {
-            "name": "pallette",
-            "url": "git@github.com:gndps/palette-replace.git",
-            "enable_auto_push": true,
-            "source_bash_files": false
         }
   ]
 }
