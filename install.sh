@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-REPO_URL="git@github.com:gndps/dot_bash_files.git"
+REPO_URL="https://github.com/gndps/dot_bash_files.git"
 TARGET_DIR="$HOME/.bash_files"
 BASH_PROFILE="$HOME/.bash_profile"
 BASHRC="$HOME/.bashrc"

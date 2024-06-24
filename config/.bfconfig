@@ -7,7 +7,7 @@
     "repos": [
         {
             "name": "generic_envs",
-            "url": "git@github.com:gndps/generic_envs.git",
+            "url": "https://github.com/gndps/generic_envs.git",
             "enable_auto_pull": true,
             "enable_auto_push": true,
         }
