@@ -5,6 +5,7 @@ echo INFO
 echo "Use this profile to set default env variables or set path to config files"
 echo "It runs by default as the before other profiles when using bfcli init <profile_name>"
 echo
+echo "SUCCESS: Initialized default profile"
 
 [macos]
 chmod +x $BASH_FILES_DIR/os-specific/mac/prerequisites
