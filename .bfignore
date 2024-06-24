@@ -1,0 +1,10 @@
+# Anything that is not a dot file should be ignored
+init
+config
+*\.bfignore
+*\.bfignore_merged
+*\.git
+*\.gitignore
+*\.DS_STORE
+*\.cache
+*README.md

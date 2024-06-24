@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# PROMPT to update configure_environment
+# this function reads a file like this:
+# [default]
+# chmod +x $BASH_FILES_DIR/.bfconfig
+# [test]
+# echo test
+# and runs each line in the activated section one by one
+# can you modify the function such that it creates a new temporary file for the activated section and copies all the lines in that section to that file, then add a chmod +x permissions to that file and then run that file and delete it. this will allow me to write multi line code
+configure_environment() {
+    profile="$1"
+    profiles_list="$BASH_FILES_DIR/config/profiles"
+
+    if [[ $# -eq 0 ]]; then
+        echo "Error: Must provide atleast one of the profiles:"
+        cat $profiles_list | grep "\["
+        return 1
+    fi
+
+    if [[ ! -f "$profiles_list" ]]; then
+        echo "Error: Profiles list not found at $profiles_list"
+        return 1
+    fi
+
+    echo "Configuring environment using profile: $profile"
+
+    # Read the configuration file and extract commands for the given profile
+    in_section=false
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Check for section headers
+        if [[ "$line" =~ ^\[(.*)\]$ ]]; then
+            current_section="${BASH_REMATCH[1]}"
+            if [[ "$current_section" == "$profile" ]]; then
+                in_section=true
+            else
+                in_section=false
+            fi
+        elif $in_section; then
+            # Execute the line if it's in the correct section and not empty
+            if [[ -n "$line" ]]; then
+                eval "$line"
+            fi
+        fi
+    done < "$profiles_list"
+}
+
+source_files() {
+  source $SCRIPT_DIR/.bflist
+}
+
+init_bash_files() {
+    # Main script logic
+    chmod +x "$SCRIPT_DIR/generate_files"
+    "$SCRIPT_DIR/generate_files"         && echo Files list generated ✔
+    source_files                         && echo Files sourced ✔
+
+    echo Bash files initialization complete ✔✔
+    echo ---
+    echo
+}

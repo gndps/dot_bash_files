@@ -1,0 +1,18 @@
+[default]
+# each line is executed by initialize individually based on the config(s) selected
+echo
+echo INFO
+echo "Use this profile to set default env variables or set path to config files"
+echo "It runs by default as the before other profiles when using bfcli init <profile_name>"
+echo
+
+[macos]
+chmod +x $BASH_FILES_DIR/os-specific/mac/prerequisites
+$BASH_FILES_DIR/os-specific/mac/prerequisites
+
+[mac_dp]
+export BFCONFIG_FILE_OVERWRITE="$BASH_FILES_DIR/machine-specific/mac_dp/.bfconfig"
+
+[vm1]
+echo "test"
+echo "test2"

@@ -1,0 +1,7 @@
+.DS_Store
+source_files_list
+# each repo is a git repo and managed individually
+# list of repos is set in .bfconfig
+repos
+.bfignore_merged
+*.bflist

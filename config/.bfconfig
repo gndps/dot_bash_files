@@ -1,0 +1,22 @@
+{
+    "defaults": {
+        "enable_auto_pull": true,
+        "enable_auto_push": false,
+        "source_bash_files": true
+  },
+    "repos": [
+        {
+            "name": "repo_to_txt",
+            "url": "git@github.com:gndps/repo_to_txt.git",
+            "enable_auto_pull": true,
+            "enable_auto_push": true,
+            "source_bash_files": false
+        },
+        {
+            "name": "pallette",
+            "url": "git@github.com:gndps/palette-replace.git",
+            "enable_auto_push": true,
+            "source_bash_files": false
+        }
+  ]
+}

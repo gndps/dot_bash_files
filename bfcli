@@ -1,0 +1,226 @@
+#!/bin/bash
+
+# Load YAML parser
+command -v jq >/dev/null 2>&1 || { echo >&2 "jq is required but it's not installed. Aborting."; exit 1; }
+
+init_bf_env_var() {
+  # installation dir
+  local bash_files_dir="$HOME/.bash_files"
+  if [[ -n "$BASH_FILES_DIR_OVERWRITE" ]]; then
+    bash_files_dir="$BASH_FILES_DIR_OVERWRITE"
+  fi
+  export BASH_FILES_DIR="$bash_files_dir"
+  echo "BASH_FILES_DIR=$BASH_FILES_DIR"
+
+  # repos dir
+  export BASH_FILES_REPOS_DIR="$BASH_FILES_DIR/repos"
+  echo "BASH_FILES_REPOS_DIR=$BASH_FILES_REPOS_DIR"
+
+  # config
+  export BFCONFIG_FILE_DEFAULT="$BASH_FILES_DIR/config/.bfconfig"
+  local bfconfig_file=$BFCONFIG_FILE_DEFAULT
+  if [ -n "$BFCONFIG_FILE_OVERWRITE" ]; then
+      bfconfig_file="$BFCONFIG_FILE_OVERWRITE"
+  fi
+  export BFCONFIG_FILE=$bfconfig_file
+  echo "BFCONFIG_FILE=$BFCONFIG_FILE"
+}
+
+list_repos() {
+  jq -r '.repos[].name' "$BFCONFIG_FILE"
+}
+
+# Helper function to get repo details
+get_repo_details() {
+    local repo_name=$1
+    local repo_attribute=$2
+
+    # Fetch repo details from repos array
+    repo_details=$(jq -r --arg repo_name "$repo_name" '.repos[] | select(.name == $repo_name)' "$BFCONFIG_FILE")
+    
+    # Extract the specific attribute from repo_details
+    repo_value=$(echo "$repo_details" | jq -r ".$repo_attribute")
+    
+    # If repo_value is null or not defined, fetch from defaults
+    if [[ $repo_value == "null" || -z $repo_value ]]; then
+        repo_value=$(jq -r --arg repo_attribute "$repo_attribute" '.defaults[$repo_attribute]' "$BFCONFIG_FILE")
+    fi
+    
+    echo "$repo_value"
+}
+
+# Function to clone repositories
+clone_all_repos() {
+    local repos_root=$BASH_FILES_REPOS_DIR
+
+    echo "Cloning all repositories to $repos_root"
+
+    # Read all repos from the config file
+    repos=$(jq -c '.repos[]' "$BFCONFIG_FILE")
+
+    # Iterate over each repo in the JSON array
+    echo "$repos" | while IFS= read -r repo; do
+        # Extract repo details using jq
+        repo_name=$(echo "$repo" | jq -r '.name // empty')
+        repo_url=$(echo "$repo" | jq -r '.url')
+
+        # Default the directory name to the repo name or part of the URL if name is missing
+        if [[ -z $repo_name ]]; then
+            repo_name=$(basename "$repo_url" .git)
+        fi
+
+        repo_dir="$repos_root/$repo_name"
+
+        if [ ! -d "$repo_dir" ]; then
+            echo "Cloning $repo_url into $repo_dir"
+            git clone "$repo_url" "$repo_dir"
+        else
+            echo "Repository $repo_url already exists, skipping clone"
+        fi
+    done
+}
+
+
+# Function to handle auto pull
+auto_pull_repos() {
+    local repos_root=$BASH_FILES_REPOS_DIR
+
+    echo "Auto-pulling changes for repositories with auto_pull enabled"
+
+    # Read all repos from the config file
+    repos=$(jq -c '.repos[]' "$BFCONFIG_FILE")
+    default_auto_pull=$(jq -r '.defaults.enable_auto_pull // false' "$BFCONFIG_FILE")
+
+    # Iterate over each repo in the JSON array
+    echo "$repos" | while IFS= read -r repo; do
+        # Extract repo details using jq
+        repo_name=$(echo "$repo" | jq -r '.name // empty')
+        repo_url=$(echo "$repo" | jq -r '.url')
+        repo_auto_pull=$(echo "$repo" | jq -r '.enable_auto_pull // empty')
+
+        # Use default value if auto_pull is not specified
+        if [[ -z $repo_auto_pull ]]; then
+            repo_auto_pull=$default_auto_pull
+        fi
+
+        # Default the directory name to the repo name or part of the URL if name is missing
+        if [[ -z $repo_name ]]; then
+            repo_name=$(basename "$repo_url" .git)
+        fi
+
+        repo_dir="$repos_root/$repo_name"
+
+        if [[ $repo_auto_pull == "true" ]]; then
+            echo "Auto-pulling changes for $repo_name"
+            if [[ -d $repo_dir ]]; then
+                cd "$repo_dir" && git pull
+            else
+                echo "Directory $repo_dir does not exist. Skipping $repo_name."
+            fi
+        else
+            echo "Auto-pull is disabled for $repo_name"
+        fi
+    done
+}
+
+
+# Function to handle auto push
+auto_push_repos() {
+    local repos_root=$BASH_FILES_REPOS_DIR
+
+    echo "Auto-pushing changes for repositories with auto_push enabled"
+
+    # Read all repos from the config file
+    repos=$(jq -c '.repos[]' "$BFCONFIG_FILE")
+    default_auto_push=$(jq -r '.defaults.enable_auto_push // false' "$BFCONFIG_FILE")
+
+    # Iterate over each repo in the JSON array
+    echo "$repos" | while IFS= read -r repo; do
+        # Extract repo details using jq
+        repo_name=$(echo "$repo" | jq -r '.name // empty')
+        repo_url=$(echo "$repo" | jq -r '.url')
+        repo_auto_push=$(echo "$repo" | jq -r '.enable_auto_push // empty')
+
+        # Use default value if auto_push is not specified
+        if [[ -z $repo_auto_push ]]; then
+            repo_auto_push=$default_auto_push
+        fi
+
+        # Default the directory name to the repo name or part of the URL if name is missing
+        if [[ -z $repo_name ]]; then
+            repo_name=$(basename "$repo_url" .git)
+        fi
+
+        repo_dir="$repos_root/$repo_name"
+
+        if [[ $repo_auto_push == "true" ]]; then
+            echo "Auto-pushing changes for $repo_name"
+            if [[ -d $repo_dir ]]; then
+                cd "$repo_dir"
+
+                # Add all changes
+                git add .
+
+                # Commit with a human-readable timestamp and "Auto Commit" prefix
+                commit_message="Auto Commit - $(date +"%Y-%m-%d %H:%M:%S")"
+                git commit -m "$commit_message"
+
+                # Push changes
+                git push
+            else
+                echo "Directory $repo_dir does not exist. Skipping $repo_name."
+            fi
+        else
+            echo "Auto-push is disabled for $repo_name"
+        fi
+    done
+}
+
+bfcli() {
+    if [[ "$1" == "init" ]]; then
+        shift
+        if [[ $# -eq 0 ]]; then
+            echo "Error: At least one profile must be provided for 'init' option."
+            configure_environment
+            exit 1
+        fi
+        
+        # Always configure 'default' profile first
+        configure_environment 'default'
+
+        # Configure additional profiles, if any
+        for profile in "$@"; do
+            configure_environment "$profile"
+        done
+
+        clone_all_repos
+        init_bash_files
+    elif [[ "$1" == "pull" ]]; then
+        auto_pull_repos
+    elif [[ "$1" == "push" ]]; then
+        auto_push_repos
+    elif [[ "$1" == "help" || "$1" == "--help" || "$1" == "-h" ]]; then
+        print_help
+    else
+      bfcli --help
+      configure_environment
+    fi
+}
+
+print_help() {
+    # Help message to display usage instructions
+    echo "
+    Usage: bfcli [option] [additional arguments]
+
+    Options:
+    init [profile1] [profile2] ...   Initialize environment, clone repos, source files.
+    pull                             Automatically pull repositories.
+    push                             Automatically push repositories.
+    help                             Display this help message.
+
+    "
+    
+}
+
+init_bf_env_var
+source $BASH_FILES_DIR/init/initialize

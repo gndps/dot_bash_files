@@ -1,0 +1,48 @@
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+
+# Function to source bash files from a directory, respecting .gitignore rules
+generate_source_files_list() {
+    OUTPUT_FILE="$SCRIPT_DIR/.bflist"
+    > "$OUTPUT_FILE"
+
+    # Use fd to find all files (excluding directories) and source them
+    fd . "$BASH_FILES_DIR" -Ha -t f --ignore-file "$BASH_FILES_DIR"/.bfignore_merged | while IFS= read -r file; do
+        # source "$file"
+        chmod +x $file
+        echo "source $file" >> "$OUTPUT_FILE"
+    done
+}
+
+merge_ignore_files() {
+    # Initialize the merged file
+    echo "# Merged .bfignore files" > "$BASH_FILES_DIR"/.bfignore_merged
+    echo "# This file combines .bfignore files from various sources" >> "$BASH_FILES_DIR"/.bfignore_merged
+    echo "# ------------------------------" >> "$BASH_FILES_DIR"/.bfignore_merged
+    echo "" >> "$BASH_FILES_DIR"/.bfignore_merged
+
+    # Merge global .bfignore file first
+    if [ -f "$BASH_FILES_DIR"/.bfignore ] && [ -s "$BASH_FILES_DIR"/.bfignore ]; then
+        echo "# From: "$BASH_FILES_DIR"/.bfignore" >> "$BASH_FILES_DIR"/.bfignore_merged
+        cat "$BASH_FILES_DIR"/.bfignore >> "$BASH_FILES_DIR"/.bfignore_merged
+        echo "" >> "$BASH_FILES_DIR"/.bfignore_merged
+    fi
+
+    # Merge .bfignore files from repos directories
+    for dir in repos/*; do
+        if [ -d "$dir" ]; then
+            if [ -f "$dir/.bfignore" ] && [ -s "$dir/.bfignore" ]; then
+                echo "" >> "$BASH_FILES_DIR"/.bfignore_merged
+                echo "# From: $dir/.bfignore" >> "$BASH_FILES_DIR"/.bfignore_merged
+                sed "s|^|$(dirname "$dir")/$(basename "$dir")/|g" "$dir/.bfignore" >> "$BASH_FILES_DIR"/.bfignore_merged
+                echo "" >> "$BASH_FILES_DIR"/.bfignore_merged
+            fi
+        fi
+    done
+}
+
+generate_files() {
+    merge_ignore_files
+    generate_source_files_list
+}
+
+generate_files
