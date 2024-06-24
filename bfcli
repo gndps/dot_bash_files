@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Load YAML parser
-command -v jq >/dev/null 2>&1 || { echo >&2 "jq is required but it's not installed. Aborting."; exit 1; }
-
 init_bf_env_var() {
   # installation dir
   local bash_files_dir="$HOME/.bash_files"
