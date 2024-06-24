@@ -41,7 +41,9 @@ source $TARGET_DIR/bfcli
 
 # Run bfcli init default
 echo "Initializing bfcli with default config..."
+source $HOME/.bash_profile
 bfcli init default
+exec $SHELL
 
 echo "Installation complete!"
 echo
