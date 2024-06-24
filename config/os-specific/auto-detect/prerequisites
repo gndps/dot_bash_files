@@ -4,7 +4,6 @@
 OS="$(uname -s)"
 
 # Define the installation directory
-BASH_FILES_DIR="$HOME"
 BF_BIN_DIR="$BASH_FILES_DIR/bin"
 
 # Create the bin directory if it doesn't exist
