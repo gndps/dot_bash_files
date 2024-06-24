@@ -1,0 +1,132 @@
+#!/bin/bash
+
+# Function to check if a command exists
+command_exists() {
+  command -v "$1" &> /dev/null
+}
+
+# Function to install fd and jq on macOS using direct downloads
+install_on_mac_without_homebrew() {
+  echo "Installing fd and jq without Homebrew..."
+
+  # Create a temporary directory for downloads
+  temp_dir=$(mktemp -d)
+  cd "$temp_dir" || exit
+
+  # Install fd
+  if ! command_exists fd; then
+    echo "Downloading and installing fd..."
+    curl -LO https://github.com/sharkdp/fd/releases/download/v8.4.0/fd-v8.4.0-x86_64-apple-darwin.tar.gz
+    tar -xzf fd-v8.4.0-x86_64-apple-darwin.tar.gz
+    sudo mv fd-v8.4.0-x86_64-apple-darwin/fd /usr/local/bin/
+  else
+    echo "fd is already installed."
+  fi
+
+  # Install jq
+  if ! command_exists jq; then
+    echo "Downloading and installing jq..."
+    curl -LO https://github.com/stedolan/jq/releases/download/jq-1.6/jq-osx-amd64
+    sudo mv jq-osx-amd64 /usr/local/bin/jq
+    sudo chmod +x /usr/local/bin/jq
+  else
+    echo "jq is already installed."
+  fi
+
+  # Cleanup
+  cd ..
+  rm -rf "$temp_dir"
+
+  echo "fd and jq installation without Homebrew completed."
+}
+
+# Function to install packages on macOS using Homebrew
+install_on_mac() {
+  # Check if Homebrew is installed
+  if ! command_exists brew; then
+    echo "Homebrew not found. Installing fd and jq without Homebrew..."
+    install_on_mac_without_homebrew
+  else
+    echo "Homebrew is already installed."
+    # Install fd and jq using Homebrew
+    if ! command_exists fd; then
+      echo "Installing fd using Homebrew..."
+      brew install fd
+    else
+      echo "fd is already installed."
+    fi
+    if ! command_exists jq; then
+      echo "Installing jq using Homebrew..."
+      brew install jq
+    else
+      echo "jq is already installed."
+    fi
+  fi
+}
+
+# Function to install packages on Debian-based Linux using apt
+install_on_debian() {
+  sudo apt update
+  if ! command_exists fd; then
+    sudo apt install -y fd-find
+  else
+    echo "fd is already installed."
+  fi
+  if ! command_exists jq; then
+    sudo apt install -y jq
+  else
+    echo "jq is already installed."
+  fi
+}
+
+# Function to install packages on Red Hat-based Linux using yum
+install_on_redhat() {
+  if ! command_exists fd; then
+    sudo yum install -y fd-find
+  else
+    echo "fd is already installed."
+  fi
+  if ! command_exists jq; then
+    sudo yum install -y jq
+  else
+    echo "jq is already installed."
+  fi
+}
+
+# Function to install packages on Arch-based Linux using pacman
+install_on_arch() {
+  sudo pacman -Syu
+  if ! command_exists fd; then
+    sudo pacman -S --noconfirm fd
+  else
+    echo "fd is already installed."
+  fi
+  if ! command_exists jq; then
+    sudo pacman -S --noconfirm jq
+  else
+    echo "jq is already installed."
+  fi
+}
+
+# Function to detect OS and call the appropriate installation function
+detect_and_install() {
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "Detected macOS."
+    install_on_mac
+  elif [[ -f /etc/debian_version ]]; then
+    echo "Detected Debian-based Linux."
+    install_on_debian
+  elif [[ -f /etc/redhat-release ]]; then
+    echo "Detected Red Hat-based Linux."
+    install_on_redhat
+  elif [[ -f /etc/arch-release ]]; then
+    echo "Detected Arch-based Linux."
+    install_on_arch
+  else
+    echo "Unsupported OS. Please install fd and jq manually."
+    exit 1
+  fi
+}
+
+# Execute the function to detect OS and install packages
+detect_and_install

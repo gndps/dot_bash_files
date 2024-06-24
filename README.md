@@ -8,15 +8,7 @@ Because dot files are a first class citizen in `Bash Files`, they don't start wi
 You can use `.fdignore` to ignore the files, and they will not be sourced by `Bash Files`
 
 # Prerequisite:
-### Mac:
-```
-brew install fd # used to ignore files in `.fdignore` (https://github.com/sharkdp/fd)
-brew install jq # used to read `.bfconfig` file(s)
-```
-### Linux
-```
-apt install fd jq
-```
+The installation script automatically installs `jq` and `fd`
 
 # Installation
 ```
@@ -25,12 +17,16 @@ bash <(curl -s https://raw.githubusercontent.com/gndps/dot_bash_files/main/insta
 
 # Customization
 
-## Include bash files compatible or non compatible repos
+## Add Repos: Include bash_files compatible or non compatible repos
 1. Update `config/.bfconfig`
 2. For a machine specific or OS specific config, create a new file anywhere and refer it in profiles. Set the path of the custom .bfconfig file using the variable `BFCONFIG_FILE_OVERWRITE`. For example:
 ```
 export BFCONFIG_FILE_OVERWRITE="$BASH_FILES_DIR/machine-specific/mac_dp/.bfconfig"
 ```
+
+### Notes on adding repos
+- Ssh keys need to be setup for private repos or ssh git urls
+- Use https git urls for public repos to access without setting keys
 
 
 ## Machine or OS Specific
