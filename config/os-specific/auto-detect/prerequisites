@@ -67,12 +67,12 @@ fi
 PROFILE_FILES=("$HOME/.bash_profile" "$HOME/.bashrc")
 
 for file in "${PROFILE_FILES[@]}"; do
-  if ! grep -q 'export PATH="$PATH:$HOME/bin"' "$file"; then
-    echo 'export PATH="$PATH:$HOME/bin"' >> "$file"
+  if ! grep -q 'export PATH="$PATH:$BASH_FILES_DIR/bin"' "$file"; then
+    echo 'export PATH="$PATH:$BASH_FILES_DIR/bin"' >> "$file"
   fi
 done
 
 # Export the new PATH for the current shell session
-export PATH="$PATH:$HOME/bin"
+export PATH="$PATH:$BASH_FILES_DIR/bin"
 
 echo "fd and jq have been installed and PATH updated."
