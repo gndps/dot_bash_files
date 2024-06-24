@@ -5,10 +5,11 @@ OS="$(uname -s)"
 
 # Define the installation directory
 BASH_FILES_DIR="$HOME"
-BIN_DIR="$BASH_FILES_DIR/bin"
+BF_BIN_DIR="$BASH_FILES_DIR/bin"
 
 # Create the bin directory if it doesn't exist
-mkdir -p "$BIN_DIR"
+mkdir -p "$BF_BIN_DIR"
+Using bin dir: "$BF_BIN_DIR"
 
 # URLs for downloading the packages
 FD_URL=""
@@ -53,14 +54,14 @@ esac
 if [ ! -z "$FD_URL" ]; then
   curl -L "$FD_URL" -o /tmp/fd.tar.gz
   tar -xzf /tmp/fd.tar.gz -C /tmp
-  cp /tmp/fd-*/fd "$BIN_DIR/"
+  cp /tmp/fd-*/fd "$BF_BIN_DIR/"
   rm -rf /tmp/fd*
 fi
 
 # Install jq
 if [ ! -z "$JQ_URL" ]; then
-  curl -L "$JQ_URL" -o "$BIN_DIR/jq"
-  chmod +x "$BIN_DIR/jq"
+  curl -L "$JQ_URL" -o "$BF_BIN_DIR/jq"
+  chmod +x "$BF_BIN_DIR/jq"
 fi
 
 # Update PATH in .bash_profile and .bashrc
