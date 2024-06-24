@@ -1,155 +1,78 @@
 #!/bin/bash
 
-# Ensure BASH_FILES_DIR is set
-if [[ -z "$BASH_FILES_DIR" ]]; then
-  echo "Environment variable BASH_FILES_DIR is not set. Please set it and rerun the script."
-  kill -INT $$
-  # https://stackoverflow.com/a/77106784
+# Detect the OS
+OS="$(uname -s)"
+
+# Define the installation directory
+BASH_FILES_DIR="$HOME"
+BIN_DIR="$BASH_FILES_DIR/bin"
+
+# Create the bin directory if it doesn't exist
+mkdir -p "$BIN_DIR"
+
+# URLs for downloading the packages
+FD_URL=""
+JQ_URL=""
+
+# Determine the URLs based on the OS
+case "$OS" in
+  Linux)
+    # Check for specific Linux distros if needed
+    if [ -f /etc/os-release ]; then
+      . /etc/os-release
+      case "$ID" in
+        ubuntu|debian)
+          FD_URL="https://github.com/sharkdp/fd/releases/download/v8.2.1/fd-v8.2.1-x86_64-unknown-linux-musl.tar.gz"
+          JQ_URL="https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64"
+          ;;
+        fedora|centos|rhel)
+          FD_URL="https://github.com/sharkdp/fd/releases/download/v8.2.1/fd-v8.2.1-x86_64-unknown-linux-musl.tar.gz"
+          JQ_URL="https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64"
+          ;;
+        *)
+          echo "Unsupported Linux distribution."
+          exit 1
+          ;;
+      esac
+    else
+      echo "Unsupported Linux distribution."
+      exit 1
+    fi
+    ;;
+  Darwin)
+    FD_URL="https://github.com/sharkdp/fd/releases/download/v8.2.1/fd-v8.2.1-x86_64-apple-darwin.tar.gz"
+    JQ_URL="https://github.com/stedolan/jq/releases/download/jq-1.6/jq-osx-amd64"
+    ;;
+  *)
+    echo "Unsupported OS."
+    exit 1
+    ;;
+esac
+
+# Install fd
+if [ ! -z "$FD_URL" ]; then
+  curl -L "$FD_URL" -o /tmp/fd.tar.gz
+  tar -xzf /tmp/fd.tar.gz -C /tmp
+  cp /tmp/fd-*/fd "$BIN_DIR/"
+  rm -rf /tmp/fd*
 fi
 
-# Function to check if a command exists
-command_exists() {
-  command -v "$1" &> /dev/null
-}
+# Install jq
+if [ ! -z "$JQ_URL" ]; then
+  curl -L "$JQ_URL" -o "$BIN_DIR/jq"
+  chmod +x "$BIN_DIR/jq"
+fi
 
-# Function to install fd and jq on macOS using direct downloads
-install_on_mac_without_homebrew() {
-  echo "Installing fd and jq without Homebrew..."
+# Update PATH in .bash_profile and .bashrc
+PROFILE_FILES=("$HOME/.bash_profile" "$HOME/.bashrc")
 
-  # Create a temporary directory for downloads
-  temp_dir=$(mktemp -d)
-  cd "$temp_dir" || kill -INT $$
-
-  # Create the destination directory
-  mkdir -p "$BASH_FILES_DIR/bin"
-
-  # Install fd
-  if ! command_exists fd; then
-    echo "Downloading and installing fd..."
-    curl -LO https://github.com/sharkdp/fd/releases/download/v8.4.0/fd-v8.4.0-x86_64-apple-darwin.tar.gz
-    tar -xzf fd-v8.4.0-x86_64-apple-darwin.tar.gz
-    mv fd-v8.4.0-x86_64-apple-darwin/fd "$BASH_FILES_DIR/bin/"
-  else
-    echo "fd is already installed."
+for file in "${PROFILE_FILES[@]}"; do
+  if ! grep -q 'export PATH="$PATH:$HOME/bin"' "$file"; then
+    echo 'export PATH="$PATH:$HOME/bin"' >> "$file"
   fi
+done
 
-  # Install jq
-  if ! command_exists jq; then
-    echo "Downloading and installing jq..."
-    curl -LO https://github.com/stedolan/jq/releases/download/jq-1.6/jq-osx-amd64
-    mv jq-osx-amd64 "$BASH_FILES_DIR/bin/jq"
-    chmod +x "$BASH_FILES_DIR/bin/jq"
-  else
-    echo "jq is already installed."
-  fi
+# Export the new PATH for the current shell session
+export PATH="$PATH:$HOME/bin"
 
-  # Cleanup
-  cd ..
-  rm -rf "$temp_dir"
-
-  echo "fd and jq installation without Homebrew completed."
-}
-
-# Function to install packages on macOS using Homebrew
-install_on_mac() {
-  # Check if Homebrew is installed
-  if ! command_exists brew; then
-    echo "Homebrew not found. Installing fd and jq without Homebrew..."
-    install_on_mac_without_homebrew
-  else
-    echo "Homebrew is already installed."
-    # Create the destination directory
-    mkdir -p "$BASH_FILES_DIR/bin"
-    # Install fd and jq using Homebrew
-    if ! command_exists fd; then
-      echo "Installing fd using Homebrew..."
-      brew install fd
-      cp "$(brew --prefix fd)/bin/fd" "$BASH_FILES_DIR/bin/"
-    else
-      echo "fd is already installed."
-    fi
-    if ! command_exists jq; then
-      echo "Installing jq using Homebrew..."
-      brew install jq
-      cp "$(brew --prefix jq)/bin/jq" "$BASH_FILES_DIR/bin/"
-    else
-      echo "jq is already installed."
-    fi
-  fi
-}
-
-# Function to install packages on Debian-based Linux using apt
-install_on_debian() {
-  apt update || sudo apt update
-  mkdir -p "$BASH_FILES_DIR/bin"
-  if ! command_exists fd; then
-    apt install -y fd-find || sudo apt install -y fd-find
-    ln -s $(which fdfind) "$BASH_FILES_DIR/bin/fd"
-  else
-    echo "fd is already installed."
-  fi
-  if ! command_exists jq; then
-    apt install -y jq || sudo apt install -y jq
-    cp "$(which jq)" "$BASH_FILES_DIR/bin/"
-  else
-    echo "jq is already installed."
-  fi
-}
-
-# Function to install packages on Red Hat-based Linux using yum
-install_on_redhat() {
-  mkdir -p "$BASH_FILES_DIR/bin"
-  if ! command_exists fd; then
-    yum install -y fd-find || sudo yum install -y fd-find
-    ln -s $(which fd) "$BASH_FILES_DIR/bin/fd"
-  else
-    echo "fd is already installed."
-  fi
-  if ! command_exists jq; then
-    yum install -y jq || sudo yum install -y jq
-    cp "$(which jq)" "$BASH_FILES_DIR/bin/"
-  else
-    echo "jq is already installed."
-  fi
-}
-
-# Function to install packages on Arch-based Linux using pacman
-install_on_arch() {
-  pacman -Syu || sudo pacman -Syu
-  mkdir -p "$BASH_FILES_DIR/bin"
-  if ! command_exists fd; then
-    pacman -S --noconfirm fd || sudo pacman -S --noconfirm fd
-    cp "$(which fd)" "$BASH_FILES_DIR/bin/"
-  else
-    echo "fd is already installed."
-  fi
-  if ! command_exists jq; then
-    pacman -S --noconfirm jq || sudo pacman -S --noconfirm jq
-    cp "$(which jq)" "$BASH_FILES_DIR/bin/"
-  else
-    echo "jq is already installed."
-  fi
-}
-
-# Function to detect OS and call the appropriate installation function
-detect_and_install() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    echo "Detected macOS."
-    install_on_mac
-  elif [[ -f /etc/debian_version ]]; then
-    echo "Detected Debian-based Linux."
-    install_on_debian
-  elif [[ -f /etc/redhat-release ]]; then
-    echo "Detected Red Hat-based Linux."
-    install_on_redhat
-  elif [[ -f /etc/arch-release ]]; then
-    echo "Detected Arch-based Linux."
-    install_on_arch
-  else
-    echo "Unsupported OS. Please install fd and jq manually."
-    kill -INT $$
-  fi
-}
-
-# Execute the function to detect OS and install packages
-detect_and_install
+echo "fd and jq have been installed and PATH updated."
