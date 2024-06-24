@@ -8,17 +8,42 @@ Because dot files are a first class citizen in `Bash Files`, they don't start wi
 You can use `.fdignore` to ignore the files, and they will not be sourced by `Bash Files`
 
 # Prerequisite:
-Install fd: https://github.com/sharkdp/fd
-
-`brew install fd` # used to ignore files in `.fdignore`
+### Mac:
+```
+brew install fd # used to ignore files in `.fdignore` (https://github.com/sharkdp/fd)
+brew install jq # used to read `.bfconfig` file(s)
+```
+### Linux
+```
+apt install fd jq
+```
 
 # Installation
-1. Clone to $HOME dir (or custom path)
-2. Add the following to bash_profile and bashrc
 ```
-# export BASH_FILES_DIR_OVERWRITE="$HOME/.bash_files" # Optional
-source $HOME/.bash_files/initialize # (or custom path)
+bash <(curl -s https://raw.githubusercontent.com/gndps/dot_bash_files/main/install.sh)
 ```
+
+# Customization
+
+## Include bash files compatible or non compatible repos
+1. Update `config/.bfconfig`
+2. For a machine specific or OS specific config, create a new file anywhere and refer it in profiles. Set the path of the custom .bfconfig file using the variable `BFCONFIG_FILE_OVERWRITE`. For example:
+```
+export BFCONFIG_FILE_OVERWRITE="$BASH_FILES_DIR/machine-specific/mac_dp/.bfconfig"
+```
+
+
+## Machine or OS Specific
+1. Update `config/profiles`. For example, you add new profile called `[ubuntu]`.
+2. Run `bfcli init ubuntu` to apply the profile. Note that it will not uninstall old profiles.
+3. Commit changes.
+
+
+
+# Uninstall
+1. `rm -rf $HOME/.bash_files`
+2. Update bash_profile and bashrc to remove entries
+
 
 # License
 This project is licensed under the MIT License. See the LICENSE file for details.

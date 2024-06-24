@@ -198,6 +198,8 @@ bfcli() {
     elif [[ "$1" == "pull" ]]; then
         auto_pull_repos
     elif [[ "$1" == "push" ]]; then
+        echo "It's safe to pull before push, so pulling first..."
+        auto_pull_repos
         auto_push_repos
     elif [[ "$1" == "help" || "$1" == "--help" || "$1" == "-h" ]]; then
         print_help
