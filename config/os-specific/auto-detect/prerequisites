@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Ensure BASH_FILES_DIR is set
+if [[ -z "$BASH_FILES_DIR" ]]; then
+  echo "Environment variable BASH_FILES_DIR is not set. Please set it and rerun the script."
+  kill -INT $$
+  # https://stackoverflow.com/a/77106784
+fi
+
 # Function to check if a command exists
 command_exists() {
   command -v "$1" &> /dev/null
@@ -11,14 +18,17 @@ install_on_mac_without_homebrew() {
 
   # Create a temporary directory for downloads
   temp_dir=$(mktemp -d)
-  cd "$temp_dir" || exit
+  cd "$temp_dir" || kill -INT $$
+
+  # Create the destination directory
+  mkdir -p "$BASH_FILES_DIR/bin"
 
   # Install fd
   if ! command_exists fd; then
     echo "Downloading and installing fd..."
     curl -LO https://github.com/sharkdp/fd/releases/download/v8.4.0/fd-v8.4.0-x86_64-apple-darwin.tar.gz
     tar -xzf fd-v8.4.0-x86_64-apple-darwin.tar.gz
-    sudo mv fd-v8.4.0-x86_64-apple-darwin/fd /usr/local/bin/
+    mv fd-v8.4.0-x86_64-apple-darwin/fd "$BASH_FILES_DIR/bin/"
   else
     echo "fd is already installed."
   fi
@@ -27,8 +37,8 @@ install_on_mac_without_homebrew() {
   if ! command_exists jq; then
     echo "Downloading and installing jq..."
     curl -LO https://github.com/stedolan/jq/releases/download/jq-1.6/jq-osx-amd64
-    sudo mv jq-osx-amd64 /usr/local/bin/jq
-    sudo chmod +x /usr/local/bin/jq
+    mv jq-osx-amd64 "$BASH_FILES_DIR/bin/jq"
+    chmod +x "$BASH_FILES_DIR/bin/jq"
   else
     echo "jq is already installed."
   fi
@@ -48,16 +58,20 @@ install_on_mac() {
     install_on_mac_without_homebrew
   else
     echo "Homebrew is already installed."
+    # Create the destination directory
+    mkdir -p "$BASH_FILES_DIR/bin"
     # Install fd and jq using Homebrew
     if ! command_exists fd; then
       echo "Installing fd using Homebrew..."
       brew install fd
+      cp "$(brew --prefix fd)/bin/fd" "$BASH_FILES_DIR/bin/"
     else
       echo "fd is already installed."
     fi
     if ! command_exists jq; then
       echo "Installing jq using Homebrew..."
       brew install jq
+      cp "$(brew --prefix jq)/bin/jq" "$BASH_FILES_DIR/bin/"
     else
       echo "jq is already installed."
     fi
@@ -67,13 +81,16 @@ install_on_mac() {
 # Function to install packages on Debian-based Linux using apt
 install_on_debian() {
   sudo apt update
+  mkdir -p "$BASH_FILES_DIR/bin"
   if ! command_exists fd; then
     sudo apt install -y fd-find
+    ln -s $(which fdfind) "$BASH_FILES_DIR/bin/fd"
   else
     echo "fd is already installed."
   fi
   if ! command_exists jq; then
     sudo apt install -y jq
+    cp "$(which jq)" "$BASH_FILES_DIR/bin/"
   else
     echo "jq is already installed."
   fi
@@ -81,13 +98,16 @@ install_on_debian() {
 
 # Function to install packages on Red Hat-based Linux using yum
 install_on_redhat() {
+  mkdir -p "$BASH_FILES_DIR/bin"
   if ! command_exists fd; then
     sudo yum install -y fd-find
+    ln -s $(which fd) "$BASH_FILES_DIR/bin/fd"
   else
     echo "fd is already installed."
   fi
   if ! command_exists jq; then
     sudo yum install -y jq
+    cp "$(which jq)" "$BASH_FILES_DIR/bin/"
   else
     echo "jq is already installed."
   fi
@@ -96,13 +116,16 @@ install_on_redhat() {
 # Function to install packages on Arch-based Linux using pacman
 install_on_arch() {
   sudo pacman -Syu
+  mkdir -p "$BASH_FILES_DIR/bin"
   if ! command_exists fd; then
     sudo pacman -S --noconfirm fd
+    cp "$(which fd)" "$BASH_FILES_DIR/bin/"
   else
     echo "fd is already installed."
   fi
   if ! command_exists jq; then
     sudo pacman -S --noconfirm jq
+    cp "$(which jq)" "$BASH_FILES_DIR/bin/"
   else
     echo "jq is already installed."
   fi
@@ -124,7 +147,7 @@ detect_and_install() {
     install_on_arch
   else
     echo "Unsupported OS. Please install fd and jq manually."
-    exit 1
+    kill -INT $$
   fi
 }
 
