@@ -80,16 +80,16 @@ install_on_mac() {
 
 # Function to install packages on Debian-based Linux using apt
 install_on_debian() {
-  sudo apt update || apt update
+  apt update || sudo apt update
   mkdir -p "$BASH_FILES_DIR/bin"
   if ! command_exists fd; then
-    sudo apt install -y fd-find || apt install -y fd-find
+    apt install -y fd-find || sudo apt install -y fd-find
     ln -s $(which fdfind) "$BASH_FILES_DIR/bin/fd"
   else
     echo "fd is already installed."
   fi
   if ! command_exists jq; then
-    sudo apt install -y jq || apt install -y jq
+    apt install -y jq || sudo apt install -y jq
     cp "$(which jq)" "$BASH_FILES_DIR/bin/"
   else
     echo "jq is already installed."
@@ -100,13 +100,13 @@ install_on_debian() {
 install_on_redhat() {
   mkdir -p "$BASH_FILES_DIR/bin"
   if ! command_exists fd; then
-    sudo yum install -y fd-find || yum install -y fd-find
+    yum install -y fd-find || sudo yum install -y fd-find
     ln -s $(which fd) "$BASH_FILES_DIR/bin/fd"
   else
     echo "fd is already installed."
   fi
   if ! command_exists jq; then
-    sudo yum install -y jq || yum install -y jq
+    yum install -y jq || sudo yum install -y jq
     cp "$(which jq)" "$BASH_FILES_DIR/bin/"
   else
     echo "jq is already installed."
@@ -115,16 +115,16 @@ install_on_redhat() {
 
 # Function to install packages on Arch-based Linux using pacman
 install_on_arch() {
-  sudo pacman -Syu || pacman -Syu
+  pacman -Syu || sudo pacman -Syu
   mkdir -p "$BASH_FILES_DIR/bin"
   if ! command_exists fd; then
-    sudo pacman -S --noconfirm fd || pacman -S --noconfirm fd
+    pacman -S --noconfirm fd || sudo pacman -S --noconfirm fd
     cp "$(which fd)" "$BASH_FILES_DIR/bin/"
   else
     echo "fd is already installed."
   fi
   if ! command_exists jq; then
-    sudo pacman -S --noconfirm jq || pacman -S --noconfirm jq
+    pacman -S --noconfirm jq || sudo pacman -S --noconfirm jq
     cp "$(which jq)" "$BASH_FILES_DIR/bin/"
   else
     echo "jq is already installed."
