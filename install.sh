@@ -35,19 +35,3 @@ if ! grep -Fxq "$BFCLI_SOURCE" $BASHRC; then
     echo "$BFCLI_SOURCE" >> $BASHRC
     echo "Added bfcli source to $BASHRC"
 fi
-
-# # Source the bfcli command in the current session
-# source $TARGET_DIR/bfcli
-
-# # Run bfcli init default
-# echo "Initializing bfcli with default config..."
-# source $HOME/.bash_profile
-# bfcli init default
-# exec $SHELL
-
-# echo "Installation complete!"
-# echo
-# echo "Now you can initialize os specific or machine specific profiles"
-# echo "Run following to list profiles:"
-# echo "bfcli init"
-# echo
