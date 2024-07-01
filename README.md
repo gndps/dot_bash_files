@@ -7,8 +7,8 @@ Because dot files are a first class citizen in `Bash Files`, they don't start wi
 
 You can use `.fdignore` to ignore the files, and they will not be sourced by `Bash Files`
 
-# Prerequisite:
-The installation script automatically installs `jq` and `fd`
+# Prerequisite (Optional):
+The installation script automatically installs: `jq`, `fd`
 
 # Installation & Usage
 

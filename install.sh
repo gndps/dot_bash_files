@@ -24,7 +24,7 @@ fi
 echo "Cloning repository..."
 git clone $REPO_URL $TARGET_DIR
 
-PREREQ="$BASH_FILES_DIR/prerequisites"
+PREREQ="$TARGET_DIR/prerequisites"
 chmod +x $PREREQ && $PREREQ
 echo "SUCCESS: Initialized prerequisites"
 
