@@ -299,6 +299,11 @@ install_init_profiles() {
     done
 }
 
+run_init() {
+    install_init_profiles && \
+    clone_all_repos && \
+    source_files
+}
 
 bfcli() {
     if [[ "$1" == "init" ]]; then
@@ -318,8 +323,7 @@ bfcli() {
 
     
         echo "$@" > "$BF_INIT_PROFILES_FILE" # write init profiles
-        install_init_profiles && \
-        clone_all_repos && \
+        run_init && \
         echo && \
         echo ==================================== && \
         echo Bash files initialization complete && \
@@ -335,7 +339,7 @@ bfcli() {
         config "$@" && \
         echo "== Configuration Successful ==" && \
         echo && \
-        echo "Next step:" && \
+        echo "Next step: bfcli init <profile>" && \
         install_profile
     elif [[ "$1" == "add" ]]; then
         echo "Not implemented yet"
@@ -370,9 +374,9 @@ print_help() {
 export_environment_variables
 source $BASH_FILES_DIR/init/main
 if [[ -f $BASH_FILES_DIR/init_profiles ]]; then
-    install_init_profiles
-    echo "Activated profiles:"
-    cat $BASH_FILES_DIR/init_profiles
+    run_init && \
+    echo "Activated profiles:" && \
+    cat $BASH_FILES_DIR/init_profiles && \
     echo "== Bash files activated =="
     echo
 elif [ "$(ls -A $BASH_FILES_DIR/config 2> /dev/null)" ]; then
