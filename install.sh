@@ -25,7 +25,10 @@ echo "Cloning repository..."
 git clone $REPO_URL $TARGET_DIR
 
 PREREQ="$TARGET_DIR/prerequisites"
-chmod +x $PREREQ && $PREREQ
+echo "========"
+echo $TARGET_DIR
+echo $PREREQ
+chmod +x $PREREQ && $PREREQ && \
 echo "SUCCESS: Initialized prerequisites"
 
 # Add source command to .bash_profile if not already present
