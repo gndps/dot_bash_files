@@ -21,24 +21,38 @@ if [ -d "$TARGET_DIR" ]; then
 fi
 
 # Clone the repository
-echo "Cloning repository..."
+echo
+echo "== Cloning repository... =="
+echo
 git clone $REPO_URL $TARGET_DIR
 
 PREREQ="$TARGET_DIR/prerequisites"
-echo "========"
-echo $TARGET_DIR
-echo $PREREQ
+echo
+echo "== Installing Prerequisites =="
+echo
 chmod +x $PREREQ && $PREREQ && \
 echo "SUCCESS: Initialized prerequisites"
 
+echo
+echo "== Adding to bash_profile =="
+echo
 # Add source command to .bash_profile if not already present
 if ! grep -Fxq "$BFCLI_SOURCE" $BASH_PROFILE; then
     echo "$BFCLI_SOURCE" >> $BASH_PROFILE
     echo "Added bfcli source to $BASH_PROFILE"
 fi
 
+echo
+echo "== Adding to bash_rc =="
+echo
 # Add source command to .bashrc if not already present
 if ! grep -Fxq "$BFCLI_SOURCE" $BASHRC; then
     echo "$BFCLI_SOURCE" >> $BASHRC
     echo "Added bfcli source to $BASHRC"
 fi
+
+echo
+echo "================================="
+echo "Bash files installed successfully"
+echo "================================="
+echo
