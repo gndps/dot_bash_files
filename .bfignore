@@ -1,12 +1,12 @@
 # Anything that is not a dot file should be ignored
-init
-bin
-config
-*\.bfignore
-*\.bfignore_merged
 *\.git
 *\.gitignore
-*\.DS_STORE
+**\.DS_Store
+**/*.md
+.deprecated
 *\.cache
-*README.md
-install.sh
+*\.vscode
+*.py
+*.txt
+**\.bfignore
+**\.bfignore_merged

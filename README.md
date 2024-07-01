@@ -10,19 +10,31 @@ You can use `.fdignore` to ignore the files, and they will not be sourced by `Ba
 # Prerequisite:
 The installation script automatically installs `jq` and `fd`
 
-# Installation
+# Installation & Usage
+
+## Installation
 ```
 bash <(curl -s https://raw.githubusercontent.com/gndps/dot_bash_files/main/install.sh)
-source $HOME/.bash_profile && bfcli init default
+source $HOME/.bash_profile
 ```
 
-# Customization
-
-## Add Repos: Include bash_files compatible or non compatible repos
-1. Update `config/.bfconfig`
-2. For a machine specific or OS specific config, create a new file anywhere and refer it in profiles. Set the path of the custom .bfconfig file using the variable `BFCONFIG_FILE_OVERWRITE`. For example:
+## Configuration
+Use your own config repo or the following sample config:
 ```
-export BFCONFIG_FILE_OVERWRITE="$BASH_FILES_DIR/machine-specific/mac_dp/.bfconfig"
+bfcli config https://github.com/gndps/dbf_config.git # sample config
+```
+> A config repo must have two files: `repos_config.json` and `profiles`
+
+## Initialization
+
+
+## Customization
+
+### Add Repos: Include bash_files compatible or non compatible repos
+1. Update `config/repos_config.json`
+2. For a machine specific or OS specific config, create a new file anywhere and refer it in profiles. Set the path of the custom repos_config.json file using the variable `BF_REPOS_CONFIG_FILE_OVERWRITE`. For example:
+```
+export BF_REPOS_CONFIG_FILE_OVERWRITE="$BASH_FILES_DIR/machine-specific/mac_dp/repos_config.json"
 ```
 
 ### Notes on adding repos
@@ -30,7 +42,7 @@ export BFCONFIG_FILE_OVERWRITE="$BASH_FILES_DIR/machine-specific/mac_dp/.bfconfi
 - Use https git urls for public repos to access without setting keys
 
 
-## Machine or OS Specific
+### Machine or OS Specific
 1. Update `config/profiles`. For example, you add new profile called `[ubuntu]`.
 2. Run `bfcli init ubuntu` to apply the profile. Note that it will not uninstall old profiles.
 3. Commit changes.

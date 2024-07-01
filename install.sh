@@ -24,6 +24,10 @@ fi
 echo "Cloning repository..."
 git clone $REPO_URL $TARGET_DIR
 
+PREREQ="$BASH_FILES_DIR/prerequisites"
+chmod +x $PREREQ && $PREREQ
+echo "SUCCESS: Initialized prerequisites"
+
 # Add source command to .bash_profile if not already present
 if ! grep -Fxq "$BFCLI_SOURCE" $BASH_PROFILE; then
     echo "$BFCLI_SOURCE" >> $BASH_PROFILE

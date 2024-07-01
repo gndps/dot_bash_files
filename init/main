@@ -2,17 +2,13 @@
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-# PROMPT to update configure_environment
-# this function reads a file like this:
-# [default]
-# chmod +x $BASH_FILES_DIR/.bfconfig
-# [test]
-# echo test
-# and runs each line in the activated section one by one
-# can you modify the function such that it creates a new temporary file for the activated section and copies all the lines in that section to that file, then add a chmod +x permissions to that file and then run that file and delete it. this will allow me to write multi line code
-configure_environment() {
+# Run the code inside a profile ($1) section i.e. `$BASH_FILES_DIR/config/profiles`
+install_profile() {
     profile="$1"
     profiles_list="$BASH_FILES_DIR/config/profiles"
+    if [[ ! -f "$profiles_list" ]]; then
+        return 1
+    fi
 
     if [[ $# -eq 0 ]]; then
         echo "Error: Must provide atleast one of the profiles:"
@@ -25,7 +21,9 @@ configure_environment() {
         return 1
     fi
 
-    echo "Configuring environment using profile: $profile"
+    echo
+    echo "== Installing profile $@ =="
+    echo
 
     # Read the configuration file and extract commands for the given profile
     in_section=false
@@ -51,18 +49,12 @@ source_files() {
   source $SCRIPT_DIR/.bflist
 }
 
-init_bash_files() {
+generate_file_list_and_source_files() {
     # Main script logic
-    echo "sourcing $BASH_FILES_DIR/init/generate_files"
-    source $BASH_FILES_DIR/init/generate_files
+    echo 
+    echo "== Generating and sourcing files =="
     echo
-    echo "Generating files..."
-    run_generate_files                   && echo Files list generated ✔ || echo generate_files failed!
-    echo
-    echo "Sourcing files..."
-    source_files                         && echo Files sourced ✔ || echo source_files failed!
-
-    echo Bash files initialization complete ✔✔
-    echo ---
-    echo
+    source $BASH_FILES_DIR/init/file_list_generator || (echo "ERROR: Can't source file_list_generator" && exit 1) && \
+    run_generate_files                   && echo Files list generated ✔ || (echo "ERROR: generate_files failed!"; exit 1) && \
+    source_files                         && echo Files sourced ✔ || (echo "ERROR: source_files failed!"; exit 1)
 }

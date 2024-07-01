@@ -1,8 +1,12 @@
 .DS_Store
 source_files_list
 # each repo is a git repo and managed individually
-# list of repos is set in .bfconfig
+# list of repos is set in $BASH_FILES_DIR/config/repos_config.json
 repos
 .bfignore_merged
 *.bflist
 bin
+.vscode
+config*
+repos
+.cache
