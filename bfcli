@@ -7,11 +7,11 @@ export_environment_variables() {
     bash_files_dir="$BASH_FILES_DIR_OVERWRITE"
   fi
   export BASH_FILES_DIR="$bash_files_dir"
-  echo "BASH_FILES_DIR=$BASH_FILES_DIR"
+#   echo "BASH_FILES_DIR=$BASH_FILES_DIR"
 
   # repos dir
   export BASH_FILES_REPOS_DIR="$BASH_FILES_DIR/repos"
-  echo "BASH_FILES_REPOS_DIR=$BASH_FILES_REPOS_DIR"
+#   echo "BASH_FILES_REPOS_DIR=$BASH_FILES_REPOS_DIR"
 
   # config
   export BF_REPOS_CONFIG_FILE_DEFAULT="$BASH_FILES_DIR/config/repos_config.json"
@@ -20,7 +20,8 @@ export_environment_variables() {
       bf_repos_config_file="$BF_REPOS_CONFIG_FILE_OVERWRITE"
   fi
   export BF_REPOS_CONFIG_FILE=$bf_repos_config_file
-  echo "BF_REPOS_CONFIG_FILE=$BF_REPOS_CONFIG_FILE"
+#   echo "BF_REPOS_CONFIG_FILE=$BF_REPOS_CONFIG_FILE"
+  export BF_INIT_PROFILES_FILE="$BASH_FILES_DIR/init_profiles"
 }
 
 list_repos() {
@@ -70,7 +71,7 @@ clone_all_repos() {
     echo "List of repos to clone:"
     echo $repos
     echo
-    echo "== Cloning Repsitories =="
+    echo "== Cloning Repositories =="
     echo
 
     # Iterate over each repo in the JSON array
@@ -78,6 +79,7 @@ clone_all_repos() {
         # Extract repo details using jq
         repo_name=$(echo "$repo" | jq -r '.name // empty')
         repo_url=$(echo "$repo" | jq -r '.url')
+        clone_command=$(echo "$repo" | jq -r '.clone_command // empty')
 
         # Default the directory name to the repo name or part of the URL if name is missing
         if [[ -z $repo_name ]]; then
@@ -87,13 +89,21 @@ clone_all_repos() {
         repo_dir="$repos_root/$repo_name"
 
         if [ ! -d "$repo_dir" ]; then
-            echo "Cloning $repo_url into $repo_dir"
-            git clone "$repo_url" "$repo_dir"
+            if [[ -n $clone_command ]]; then
+                echo "Cloning $repo_url into $repo_dir using custom command"
+                eval "$clone_command"
+            else
+                echo "Cloning $repo_url into $repo_dir"
+                git clone "$repo_url" "$repo_dir"
+            fi
         else
             echo "Skipping clone: $repo_url (already exists)"
         fi
+        # the following line allows to use, the packages from repos, cloned before the current repo
+        generate_file_list_and_source_files
     done
 }
+
 
 
 # Function to handle auto pull
@@ -199,6 +209,13 @@ function config_help {
         -u, --url <url>                The URL of the repository to clone.
         -b, --branch <branch>           The branch of the repository to clone.
                                         If not specified, the default branch is used.
+    
+    Example config repo:
+    https://github.com/gndps/dbf_config/tree/main
+
+    Example init:
+    bfcli config https://github.com/gndps/dbf_config.git
+
     "
 }
 
@@ -269,9 +286,29 @@ function config {
     fi
 }
 
+install_init_profiles() {
+    # Read profiles from file
+    profiles=$(cat "$BF_INIT_PROFILES_FILE")
+    
+    # Iterate over profiles
+    for profile in $profiles; do
+        if ! install_profile "$profile"; then
+            echo "Error: Failed to install profile $profile"
+            return 1
+        fi
+    done
+}
+
 
 bfcli() {
     if [[ "$1" == "init" ]]; then
+        if [[ -z "$(ls -A "$BASH_FILES_DIR/config")" ]]; then
+            echo "ERROR: Can't use init without configuring bash files"
+            echo "ERROR: Please use the following command to configure bash files:"
+            echo "bfcli config"
+            return 1
+        fi
+        
         shift
         if [[ $# -eq 0 ]]; then
             echo "Error: At least one profile must be provided for 'init' option."
@@ -279,15 +316,10 @@ bfcli() {
             return 1
         fi
 
-        # Configure additional profiles, if any
-        for profile in "$@"; do
-            install_profile "$profile"
-        done 
-
-        # source $HOME/.bash_profile
-        # echo "sourced $HOME/.bash_profile"
+    
+        echo "$@" > "$BF_INIT_PROFILES_FILE" # write init profiles
+        install_init_profiles && \
         clone_all_repos && \
-        generate_file_list_and_source_files && \
         echo && \
         echo ==================================== && \
         echo Bash files initialization complete && \
@@ -300,7 +332,13 @@ bfcli() {
         auto_pull_repos && auto_push_repos
     elif [[ "$1" == "config" ]]; then
         shift
-        config "$@"
+        config "$@" && \
+        echo "== Configuration Successful ==" && \
+        echo && \
+        echo "Next step:" && \
+        install_profile
+    elif [[ "$1" == "add" ]]; then
+        echo "Not implemented yet"
     elif [[ "$1" == "help" || "$1" == "--help" || "$1" == "-h" ]]; then
         print_help
     else
@@ -318,7 +356,8 @@ print_help() {
     init [profile1] [profile2] ...   Initialize environment, clone repos, source files.
     pull                             Automatically pull repositories.
     push                             Automatically push repositories.
-    config [options]              Configure the bfcli config file.
+    config [options]                 Configure the bfcli config file.
+    add                              Not implemented yet
     help                             Display this help message.
 
     Config options:
@@ -330,3 +369,18 @@ print_help() {
 
 export_environment_variables
 source $BASH_FILES_DIR/init/main
+if [[ -f $BASH_FILES_DIR/init_profiles ]]; then
+    install_init_profiles
+    echo "Activated profiles:"
+    cat $BASH_FILES_DIR/init_profiles
+    echo "== Bash files activated =="
+    echo
+elif [ "$(ls -A $BASH_FILES_DIR/config 2> /dev/null)" ]; then
+    echo "Bash files can be activated using: bfcli init"
+    echo
+else
+    echo "Please refer to github readme for detailed information:"
+    echo "https://github.com/gndps/dot_bash_files/tree/main?tab=readme-ov-file"
+    echo "Essentially, you can use bfcli config <bf_config_repo> or bfcli add <bf_compatible_repo>"
+    echo
+fi

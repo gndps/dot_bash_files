@@ -27,6 +27,13 @@ bfcli config https://github.com/gndps/dbf_config.git # sample config
 
 ## Initialization
 
+```
+# bfcli init <your profile>
+# Example from sample config above:
+bfcli init default
+```
+`bfcli init` accept multiple profiles as arguments
+
 
 ## Customization
 
