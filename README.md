@@ -1,5 +1,5 @@
 # Bash Files
-Dot files managed using directories structure with recursive sourcing.
+Manage linux packages (shell files/functions/aliases as well as other language util repos)
 
 No interference with `.bash_profile` or `.bashrc`. They keep working like before
 

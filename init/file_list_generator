@@ -28,13 +28,23 @@ merge_ignore_files() {
     fi
 
     # Merge .bfignore files from repos directories
-    for dir in repos/*; do
+    REPOS_DIR="$BASH_FILES_DIR/repos"
+
+    for dir in "$REPOS_DIR"/*; do
         if [ -d "$dir" ]; then
             if [ -f "$dir/.bfignore" ] && [ -s "$dir/.bfignore" ]; then
-                echo "" >> "$BASH_FILES_DIR"/.bfignore_merged
-                echo "# From: $dir/.bfignore" >> "$BASH_FILES_DIR"/.bfignore_merged
-                sed "s|^|$(dirname "$dir")/$(basename "$dir")/|g" "$dir/.bfignore" >> "$BASH_FILES_DIR"/.bfignore_merged
-                echo "" >> "$BASH_FILES_DIR"/.bfignore_merged
+                echo "" >> "$BASH_FILES_DIR/.bfignore_merged"
+                echo "# From: $(basename "$dir")/.bfignore" >> "$BASH_FILES_DIR/.bfignore_merged"
+                
+                while IFS= read -r line || [[ -n "$line" ]]; do
+                    if [[ $line == !* ]]; then
+                        echo "!**/$(basename "$dir")/${line:1}" >> "$BASH_FILES_DIR/.bfignore_merged"
+                    else
+                        echo "**/$(basename "$dir")/$line" >> "$BASH_FILES_DIR/.bfignore_merged"
+                    fi
+                done < "$dir/.bfignore"
+                
+                echo "" >> "$BASH_FILES_DIR/.bfignore_merged"
             fi
         fi
     done

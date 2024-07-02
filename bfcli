@@ -50,6 +50,8 @@ get_repo_details() {
 # Function to clone repositories
 clone_all_repos() {
     local repos_root=$BASH_FILES_REPOS_DIR
+    local clone_hash_file="$BASH_FILES_DIR/clone_hash"
+    local current_clone_hash
 
     echo "Cloning all repositories to $repos_root"
 
@@ -60,6 +62,19 @@ clone_all_repos() {
         print_help
         return 1
     fi
+
+    # Calculate the current clone hash
+    current_clone_hash=$(jq -S . "$BF_REPOS_CONFIG_FILE" | cksum | awk '{print $1}')
+
+    # Compare with the previously saved clone hash
+    if [ -f "$clone_hash_file" ]; then
+        previous_clone_hash=$(cat "$clone_hash_file")
+        if [ "$current_clone_hash" == "$previous_clone_hash" ]; then
+            echo "Clone hash has not changed. Skipping cloning."
+            return 0
+        fi
+    fi
+
     repos=$(jq -c '.repos[]' "$BF_REPOS_CONFIG_FILE")
     if [ -z "$repos" ]; then
         echo "No repositories found to clone. Please add repositories to the config file."
@@ -75,7 +90,7 @@ clone_all_repos() {
     echo
 
     # Iterate over each repo in the JSON array
-    echo "$repos" | while IFS= read -r repo; do
+    for repo in $repos; do
         # Extract repo details using jq
         repo_name=$(echo "$repo" | jq -r '.name // empty')
         repo_url=$(echo "$repo" | jq -r '.url')
@@ -100,8 +115,11 @@ clone_all_repos() {
             echo "Skipping clone: $repo_url (already exists)"
         fi
         # the following line allows to use, the packages from repos, cloned before the current repo
-        generate_file_list_and_source_files
+        # generate_file_list_and_source_files
     done
+
+    # Save the current clone hash
+    echo "$current_clone_hash" > "$clone_hash_file"
 }
 
 
@@ -302,7 +320,7 @@ install_init_profiles() {
 run_init() {
     install_init_profiles && \
     clone_all_repos && \
-    source_files
+    generate_file_list_and_source_files
 }
 
 bfcli() {
@@ -371,6 +389,7 @@ print_help() {
     
 }
 
+echo "Starting Bash Files init"
 export_environment_variables
 source $BASH_FILES_DIR/init/main
 if [[ -f $BASH_FILES_DIR/init_profiles ]]; then
@@ -383,8 +402,14 @@ elif [ "$(ls -A $BASH_FILES_DIR/config 2> /dev/null)" ]; then
     echo "Bash files can be activated using: bfcli init"
     echo
 else
+    echo "Warning: Bash files installed but not initialized"
+    echo "At this point, you can use bfcli config <bf_config_repo> or bfcli add <bf_compatible_repo>"
+    echo
+    echo "Example:"
+    echo "bfcli config https://github.com/gndps/dbf_config.git"
+    echo
     echo "Please refer to github readme for detailed information:"
     echo "https://github.com/gndps/dot_bash_files/tree/main?tab=readme-ov-file"
-    echo "Essentially, you can use bfcli config <bf_config_repo> or bfcli add <bf_compatible_repo>"
     echo
+    echo "=========================================="
 fi

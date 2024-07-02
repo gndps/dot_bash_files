@@ -11,3 +11,4 @@ config*
 repos
 .cache
 init_profiles
+clone_hash
