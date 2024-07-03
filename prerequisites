@@ -4,6 +4,9 @@
 OS="$(uname -s)"
 
 # Define the installation directory
+if [ -z "$BASH_FILES_DIR" ] || [ ! -d "$BASH_FILES_DIR" ]; then
+    export BASH_FILES_DIR="$HOME/.bash_files"
+fi
 BF_BIN_DIR="$BASH_FILES_DIR/bin"
 
 if [ -x "$BF_BIN_DIR/fd" ] && [ -x "$BF_BIN_DIR/jq" ]; then
