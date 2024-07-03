@@ -11,8 +11,8 @@ install_profile() {
     fi
 
     if [[ $# -eq 0 ]]; then
-        echo "Error: Must provide atleast one of the profiles:"
-        cat $profiles_list | grep "\["
+        echo "Error: Must provide at least one of the profiles:"
+        cat "$profiles_list" | grep "\["
         return 1
     fi
 
@@ -40,10 +40,15 @@ install_profile() {
             # Execute the line if it's in the correct section and not empty
             if [[ -n "$line" ]]; then
                 eval "$line"
+                if [[ $? -ne 0 ]]; then
+                    echo "Error: Command failed - $line"
+                    return 1
+                fi
             fi
         fi
     done < "$profiles_list"
 }
+
 
 source_files() {
   source $SCRIPT_DIR/.bflist
