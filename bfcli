@@ -394,24 +394,24 @@ print_help() {
 echo "Starting Bash Files init"
 export_environment_variables
 source $BASH_FILES_DIR/init/main
-# if [[ -f $BASH_FILES_DIR/init_profiles ]]; then
-#     run_init && \
-#     echo "Activated profiles:" && \
-#     cat $BASH_FILES_DIR/init_profiles && \
-#     echo "== Bash files activated =="
-#     echo
-# elif [ "$(ls -A $BASH_FILES_DIR/config 2> /dev/null)" ]; then
-#     echo "Bash files can be activated using: bfcli init"
-#     echo
-# else
-#     echo "Warning: Bash files installed but not initialized"
-#     echo "At this point, you can use bfcli config <bf_config_repo> or bfcli add <bf_compatible_repo>"
-#     echo
-#     echo "Example:"
-#     echo "bfcli config https://github.com/gndps/dbf_config.git"
-#     echo
-#     echo "Please refer to github readme for detailed information:"
-#     echo "https://github.com/gndps/dot_bash_files/tree/main?tab=readme-ov-file"
-#     echo
-#     echo "=========================================="
-# fi
+if [[ -f $BASH_FILES_DIR/init_profiles ]]; then
+    run_init && \
+    echo "Activated profiles:" && \
+    cat $BASH_FILES_DIR/init_profiles && \
+    echo "== Bash files activated =="
+    echo
+elif [ "$(ls -A $BASH_FILES_DIR/config 2> /dev/null)" ]; then
+    echo "Bash files can be activated using: bfcli init"
+    echo
+else
+    echo "Warning: Bash files installed but not initialized"
+    echo "At this point, you can use bfcli config <bf_config_repo> or bfcli add <bf_compatible_repo>"
+    echo
+    echo "Example:"
+    echo "bfcli config https://github.com/gndps/dbf_config.git"
+    echo
+    echo "Please refer to github readme for detailed information:"
+    echo "https://github.com/gndps/dot_bash_files/tree/main?tab=readme-ov-file"
+    echo
+    echo "=========================================="
+fi
