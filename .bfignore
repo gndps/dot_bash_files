@@ -10,3 +10,12 @@
 *.txt
 **\.bfignore
 **\.bfignore_merged
+init
+init_profiles
+config
+bin
+prerequisites
+README.md
+install.sh
+clone_hash
+bfcli
