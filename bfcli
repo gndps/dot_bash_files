@@ -22,6 +22,8 @@ export_environment_variables() {
   export BF_REPOS_CONFIG_FILE=$bf_repos_config_file
 #   echo "BF_REPOS_CONFIG_FILE=$BF_REPOS_CONFIG_FILE"
   export BF_INIT_PROFILES_FILE="$BASH_FILES_DIR/init_profiles"
+  export BF_BIN_DIR="$BASH_FILES_DIR/bin"
+  export PATH="$PATH:$BF_BIN_DIR"
 }
 
 list_repos() {
