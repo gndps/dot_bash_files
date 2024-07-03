@@ -393,7 +393,7 @@ print_help() {
 
 echo "Starting Bash Files init"
 export_environment_variables
-# source $BASH_FILES_DIR/init/main
+source $BASH_FILES_DIR/init/main
 # if [[ -f $BASH_FILES_DIR/init_profiles ]]; then
 #     run_init && \
 #     echo "Activated profiles:" && \
