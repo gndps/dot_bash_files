@@ -481,6 +481,8 @@ bfcli() {
     elif [[ "$1" == "debug" ]]; then
         toggle BASH_FILES_DEBUG_FLAG
         echo "BASH_FILES_DEBUG_FLAG: $BASH_FILES_DEBUG_FLAG"
+    elif [[ "$1" == "list" ]]; then
+        cat $BASH_FILES_DIR/init/.bflist
     elif [[ "$1" == "help" || "$1" == "--help" || "$1" == "-h" ]]; then
         print_help
     else
@@ -502,6 +504,7 @@ print_help() {
     status                           Show git status for all repos
     config [options]                 Configure the bfcli config file.
     add                              Not implemented yet
+    list                             List the source files
     time                             Toggle TIME_BASH_FILE variable.
     fast                             Toggle BASH_FILES_FAST variable. (used by appendrc)
     help                             Display this help message.
