@@ -7,9 +7,13 @@ generate_source_files_list() {
 
     # Use fd to find all files (excluding directories) and source them
     fd . "$BASH_FILES_REPOS_DIR" -HIa -t f --ignore-file "$BASH_FILES_DIR"/.bfignore_merged | while IFS= read -r file; do
-        # source "$file"
-        chmod +x $file
-        echo "source $file" >> "$OUTPUT_FILE"
+        chmod +x "$file"
+        if [ "$TIME_BASH_FILE" = true ]; then
+            echo "{ TIMEFORMAT='%3R'; time (echo \"Sourcing $file at \$(date)\"; source $file); } 2>&1 | sed 's/^/  /'" >> "$OUTPUT_FILE"
+            echo "echo" >> "$OUTPUT_FILE"
+        else
+            echo "source $file" >> "$OUTPUT_FILE"
+        fi
     done
 }
 

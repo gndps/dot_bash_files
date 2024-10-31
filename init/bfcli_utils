@@ -1,0 +1,16 @@
+function BASH_FILES_DEBUG() {
+  if [[ "$BASH_FILES_DEBUG_FLAG" == "true" ]]; then
+    echo "$(date +"%Y-%m-%d %H:%M:%S") DEBUG: $@"
+  fi
+}
+
+toggle() {
+    local var_name=$1
+    local current_value=$(eval echo \$$var_name)
+
+    if [ "$current_value" = true ]; then
+        export "$var_name"=false
+    else
+        export "$var_name"=true
+    fi
+}

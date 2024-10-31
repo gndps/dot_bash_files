@@ -96,6 +96,7 @@ clone_all_repos() {
         # Extract repo details using jq
         repo_name=$(echo "$repo" | jq -r '.name // empty')
         repo_url=$(echo "$repo" | jq -r '.url')
+        source_bash_files=$(echo "$repo" | jq -r '.source_bash_files // empty')
         clone_command=$(echo "$repo" | jq -r '.clone_command // empty')
 
         # Default the directory name to the repo name or part of the URL if name is missing
@@ -116,8 +117,24 @@ clone_all_repos() {
         else
             echo "Skipping clone: $repo_url (already exists)"
         fi
+        if not_true "$source_bash_files"; then
+            echo "source_bash_files disabled for $repo_name"
+            if [ -f "$repo_dir/.bfignore" ]; then
+                if [ "$(cat "$repo_dir/.bfignore")" != "*" ]; then
+                    TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+                    mv "$repo_dir/.bfignore" "$repo_dir/.bfignore_bak_$TIMESTAMP"
+                    echo "Backing .bfignore up to .bfignore_bak_$TIMESTAMP"
+                fi
+            fi
+            echo "*" > "$repo_dir/.bfignore"
+            echo >> "$repo_dir/.bfignore"
+            echo "!/.bfinit" >> "$repo_dir/.bfignore"
+            if [ ! -f "$repo_dir/.bfinit" ]; then
+                echo "Initialization not implemented: $repo_dir/.bfinit" > "$repo_dir/.bfinit"
+            fi
+        fi
         # the following line allows to use, the packages from repos, cloned before the current repo
-        # generate_file_list_and_source_files
+        # gfiles && sfiles
     done
 
     # Save the current clone hash
@@ -263,9 +280,11 @@ function config_help {
     Usage: bfcli config [options]
 
     Options:
-        -u, --url <url>                The URL of the repository to clone.
+        [-u, --url] <url>               The URL of the repository to clone.
         -b, --branch <branch>           The branch of the repository to clone.
                                         If not specified, the default branch is used.
+    
+    If no option is passed, first params is considered to be the url
     
     Example config repo:
     https://github.com/gndps/dbf_config/tree/main
@@ -357,13 +376,59 @@ install_init_profiles() {
 }
 
 run_init() {
-    install_init_profiles && \
     clone_all_repos && \
-    generate_file_list_and_source_files
+    gfiles && \
+    sfiles
+}
+
+run_init_wrapper() {
+    if [ "$TIME_BASH_FILE" == "true" ]; then
+        TIMEFORMAT="Load time: %R"
+        init_cmd="time run_init"
+    else
+        init_cmd="run_init"
+    fi
+    eval $init_cmd && \
+    echo && \
+    echo ==================================== && \
+    echo Bash files initialization complete && \
+    echo ==================================== && \
+    echo
+}
+
+source_without_init() {
+    sfiles
+}
+
+init_existing_profile() {
+    if [[ -f $BASH_FILES_DIR/init_profiles ]]; then
+        source_without_init && \
+        echo "Source files list: $BASH_FILES_DIR/init/.bflist"
+        echo "Source files regeneration command: bfcli init <profile>"
+        echo "Activated profiles:" && \
+        cat $BASH_FILES_DIR/init_profiles && \
+        echo "== Bash files activated =="
+        echo
+    elif [ "$(ls -A $BASH_FILES_DIR/config 2> /dev/null)" ]; then
+        echo "Bash files can be activated using: bfcli init"
+        echo
+    else
+        echo "Warning: Bash files installed but not initialized"
+        echo "At this point, you can use bfcli config <bf_config_repo> or bfcli add <bf_compatible_repo>"
+        echo
+        echo "Example:"
+        echo "bfcli config https://github.com/gndps/dbf_config.git"
+        echo
+        echo "Please refer to github readme for detailed information:"
+        echo "https://github.com/gndps/dot_bash_files/tree/main?tab=readme-ov-file"
+        echo
+        echo "=========================================="
+    fi
 }
 
 bfcli() {
     if [[ "$1" == "init" ]]; then
+        # check config exist
         if [[ -z "$(ls -A "$BASH_FILES_DIR/config")" ]]; then
             echo "ERROR: Can't use init without configuring bash files"
             echo "ERROR: Please use the following command to configure bash files:"
@@ -372,20 +437,25 @@ bfcli() {
         fi
         
         shift
+        # check profile passed on init
         if [[ $# -eq 0 ]]; then
-            echo "Error: At least one profile must be provided for 'init' option."
-            install_profile # this will print list of profiles
+            if [[ -s "$BF_INIT_PROFILES_FILE" ]]; then
+                echo ""
+                echo "No init profile specified in bfcli init"
+                echo "Using existing profiles in $BF_INIT_PROFILES_FILE to initialize.."
+                install_init_profiles
+            else
+                echo "Error: At least one profile must be provided for 'init' option."
+                install_profile # this will print list of profiles
+            fi
             return 1
         fi
-
     
-        echo "$@" > "$BF_INIT_PROFILES_FILE" # write init profiles
-        run_init && \
-        echo && \
-        echo ==================================== && \
-        echo Bash files initialization complete && \
-        echo ==================================== && \
-        echo
+        # write & install init profiles
+        echo "$@" > "$BF_INIT_PROFILES_FILE" && install_init_profiles && \
+        run_init_wrapper
+    elif [[ "$1" == "update" ]]; then
+        run_init_wrapper
     elif [[ "$1" == "pull" ]]; then
         auto_pull_repos
     elif [[ "$1" == "push" ]]; then
@@ -402,6 +472,15 @@ bfcli() {
         install_profile
     elif [[ "$1" == "add" ]]; then
         echo "Not implemented yet"
+    elif [[ "$1" == "time" ]]; then
+        toggle TIME_BASH_FILE
+        echo "TIME_BASH_FILE: $TIME_BASH_FILE"
+    elif [[ "$1" == "fast" ]]; then
+        toggle BASH_FILES_FAST
+        echo "BASH_FILES_FAST: $BASH_FILES_FAST"
+    elif [[ "$1" == "debug" ]]; then
+        toggle BASH_FILES_DEBUG_FLAG
+        echo "BASH_FILES_DEBUG_FLAG: $BASH_FILES_DEBUG_FLAG"
     elif [[ "$1" == "help" || "$1" == "--help" || "$1" == "-h" ]]; then
         print_help
     else
@@ -417,12 +496,27 @@ print_help() {
 
     Options:
     init [profile1] [profile2] ...   Initialize environment, clone repos, source files.
+    update                         Update environment and source files.
     pull                             Automatically pull repositories.
     push                             Automatically push repositories.
     status                           Show git status for all repos
     config [options]                 Configure the bfcli config file.
     add                              Not implemented yet
+    time                             Toggle TIME_BASH_FILE variable.
+    fast                             Toggle BASH_FILES_FAST variable. (used by appendrc)
     help                             Display this help message.
+
+
+    Example usage:
+    bfcli init <profile>
+    bfcli update
+    bfcli pull
+    bfcli push
+    bfcli status
+    bfcli config -u <url> -b <branch>
+    bfcli time
+    bfcli fast
+    bfcli help
 
     Config options:
     $(config -h)
@@ -431,27 +525,13 @@ print_help() {
     
 }
 
-echo "Starting Bash Files init"
+echo "== Init bash files =="
 export_environment_variables
 source $BASH_FILES_DIR/init/main
-if [[ -f $BASH_FILES_DIR/init_profiles ]]; then
-    run_init && \
-    echo "Activated profiles:" && \
-    cat $BASH_FILES_DIR/init_profiles && \
-    echo "== Bash files activated =="
-    echo
-elif [ "$(ls -A $BASH_FILES_DIR/config 2> /dev/null)" ]; then
-    echo "Bash files can be activated using: bfcli init"
-    echo
+source $BASH_FILES_DIR/init/bfcli_utils
+if [ "$TIME_BASH_FILE" == "true" ]; then
+    TIMEFORMAT="Load time: %R"
+    time init_existing_profile
 else
-    echo "Warning: Bash files installed but not initialized"
-    echo "At this point, you can use bfcli config <bf_config_repo> or bfcli add <bf_compatible_repo>"
-    echo
-    echo "Example:"
-    echo "bfcli config https://github.com/gndps/dbf_config.git"
-    echo
-    echo "Please refer to github readme for detailed information:"
-    echo "https://github.com/gndps/dot_bash_files/tree/main?tab=readme-ov-file"
-    echo
-    echo "=========================================="
+    init_existing_profile
 fi

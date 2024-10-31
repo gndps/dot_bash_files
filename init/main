@@ -54,12 +54,18 @@ source_files() {
   source $SCRIPT_DIR/.bflist
 }
 
-generate_file_list_and_source_files() {
+sfiles() {
+    source_files                         && echo Files sourced ✔ || (echo "ERROR: source_files failed!"; exit 1)
+    if [[ "$TIME_BASH_FILE" == "false" ]]; then
+        echo "Tip: Use \`bfcli time\` to enable timining sourcing of each file"
+    fi
+}
+
+gfiles() {
     # Main script logic
     echo 
     echo "== Generating and sourcing files =="
     echo
     source $BASH_FILES_DIR/init/file_list_generator || (echo "ERROR: Can't source file_list_generator" && exit 1) && \
-    run_generate_files                   && echo Files list generated ✔ || (echo "ERROR: generate_files failed!"; exit 1) && \
-    source_files                         && echo Files sourced ✔ || (echo "ERROR: source_files failed!"; exit 1)
+    run_generate_files                   && echo Files list generated ✔ || (echo "ERROR: generate_files failed!"; exit 1)
 }

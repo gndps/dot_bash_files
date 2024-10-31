@@ -3,14 +3,15 @@
 *\.gitignore
 **\.DS_Store
 **/*.md
+**/*.bak
 .deprecated
 *\.cache
 *\.vscode
 *.py
 *.txt
+*.json
 **\.bfignore
 **\.bfignore_merged
-init
 init_profiles
 config
 bin
@@ -19,3 +20,4 @@ README.md
 install.sh
 clone_hash
 bfcli
+tmp
