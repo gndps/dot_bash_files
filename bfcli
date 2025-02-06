@@ -1,7 +1,11 @@
 #!/bin/bash
 
 not_true() {
-  [ "${1,,}" != "true" ]
+    local value="$1"
+    case "${value,,}" in
+        "true" | "1" | "yes" | "on") return 1 ;;
+        *) return 0 ;;
+    esac
 }
 
 export_environment_variables() {
@@ -134,7 +138,8 @@ clone_all_repos() {
             echo >> "$repo_dir/.bfignore"
             echo "!/.bfinit" >> "$repo_dir/.bfignore"
             if [ ! -f "$repo_dir/.bfinit" ]; then
-                echo "Initialization not implemented: $repo_dir/.bfinit" > "$repo_dir/.bfinit"
+                echo "echo Initialization not implemented: $repo_dir/.bfinit" > "$repo_dir/.bfinit"
+                echo "Initialization skipped: $repo_dir/.bfinit"
             fi
         fi
         # the following line allows to use, the packages from repos, cloned before the current repo
