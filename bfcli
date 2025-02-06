@@ -1,11 +1,11 @@
 #!/bin/bash
 
 not_true() {
-    local value="$1"
-    case "${value,,}" in
-        "true" | "1" | "yes" | "on") return 1 ;;
-        *) return 0 ;;
-    esac
+    if echo "$1" | grep -qi "true"; then
+        return 1
+    else
+        return 0
+    fi
 }
 
 export_environment_variables() {
