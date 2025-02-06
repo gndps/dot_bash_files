@@ -76,6 +76,21 @@ clone_all_repos() {
     # Calculate the current clone hash
     current_clone_hash=$(jq -S . "$BF_REPOS_CONFIG_FILE" | cksum | awk '{print $1}')
 
+    repos=$(jq -c '.repos[]' "$BF_REPOS_CONFIG_FILE")
+
+    # echo $repos
+    for repo in $repos; do
+        source_bash_files=$(echo "$repo" | jq -r '.source_bash_files // empty')
+        echo "--- Repo info ---"
+        echo "Repo: $repo"
+        echo "source_bash_files: $source_bash_files"
+        if not_true "$source_bash_files"; then
+          echo "Source: ❌"
+        else
+          echo "Source: ✅"
+        fi
+    done
+
     # Compare with the previously saved clone hash
     if [ -f "$clone_hash_file" ]; then
         previous_clone_hash=$(cat "$clone_hash_file")
