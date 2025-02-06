@@ -1,5 +1,9 @@
 #!/bin/bash
 
+not_true() {
+  [ "${1,,}" != "true" ]
+}
+
 export_environment_variables() {
   # installation dir
   local bash_files_dir="$HOME/.bash_files"
