@@ -125,6 +125,8 @@ clone_all_repos() {
         else
             echo "Skipping clone: $repo_url (already exists)"
         fi
+        echo "⛭ Repo: $repo_name"
+        echo "⛭ source_bash_files: $source_bash_files"
         if not_true "$source_bash_files"; then
             echo "source_bash_files disabled for $repo_name"
             if [ -f "$repo_dir/.bfignore" ]; then
