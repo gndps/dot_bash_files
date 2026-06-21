@@ -1,0 +1,5 @@
+[Thu Aug 29 11:19:28 PDT 2024] Running command:
+poetry run python
+---------
+
+[31;1mPoetry could not find a pyproject.toml file in /Users/gundeepsingh/.bash_files or its parents[39;22m

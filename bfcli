@@ -91,12 +91,28 @@ clone_all_repos() {
         fi
     done
 
+    # Check if any configured repos are missing from disk
+    local missing_repos=0
+    for repo in $repos; do
+        repo_name=$(echo "$repo" | jq -r '.name // empty')
+        repo_url=$(echo "$repo" | jq -r '.url')
+        if [[ -z $repo_name ]]; then
+            repo_name=$(basename "$repo_url" .git)
+        fi
+        if [ ! -d "$repos_root/$repo_name" ]; then
+            missing_repos=1
+            break
+        fi
+    done
+
     # Compare with the previously saved clone hash
     if [ -f "$clone_hash_file" ]; then
         previous_clone_hash=$(cat "$clone_hash_file")
-        if [ "$current_clone_hash" == "$previous_clone_hash" ]; then
+        if [ "$current_clone_hash" == "$previous_clone_hash" ] && [ "$missing_repos" -eq 0 ]; then
             echo "Clone hash has not changed. Skipping cloning."
             return 0
+        elif [ "$missing_repos" -eq 1 ]; then
+            echo "Missing repos detected. Proceeding with cloning..."
         fi
     fi
 
@@ -203,7 +219,18 @@ auto_pull_repos() {
             if [[ -d $repo_dir ]]; then
                 cd "$repo_dir" && git pull
             else
-                echo "Directory $repo_dir does not exist. Skipping $repo_name."
+                echo "Directory $repo_dir does not exist. Attempting to clone $repo_name..."
+                clone_command=$(echo "$repo" | jq -r '.clone_command // empty')
+                if [[ -n $clone_command ]]; then
+                    eval "$clone_command"
+                else
+                    git clone "$repo_url" "$repo_dir"
+                fi
+                if [[ $? -eq 0 ]]; then
+                    echo "Successfully cloned $repo_name"
+                else
+                    echo "Failed to clone $repo_name. Skipping."
+                fi
             fi
         else
             echo "Auto-pull is disabled for $repo_name"
