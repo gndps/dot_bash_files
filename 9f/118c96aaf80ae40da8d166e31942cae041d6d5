@@ -1,0 +1,20 @@
+bfcli
+  s_421a2a52080cfb::t_0d2a8e82db4fce 173-174
+  s_421a2a52080cfb::t_940ac91e035b1b 164-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.9",
+  "base_commit_sha": "9f118c96aaf80ae40da8d166e31942cae041d6d5",
+  "prompts": {},
+  "sessions": {
+    "s_421a2a52080cfb": {
+      "agent_id": {
+        "tool": "windsurf",
+        "id": "9605a7a1-91f8-43e7-b943-93637d199fa1",
+        "model": "Claude Sonnet 4.6 Thinking"
+      },
+      "human_author": "gundeep-dialpad <gndp@live.com>"
+    }
+  }
+}
