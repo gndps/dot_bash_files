@@ -161,15 +161,17 @@ clone_all_repos() {
         if not_true "$source_bash_files"; then
             echo "source_bash_files disabled for $repo_name"
             if [ -f "$repo_dir/.bfignore" ]; then
-                if [ "$(cat "$repo_dir/.bfignore")" != "*" ]; then
+                if [ "$(cat "$repo_dir/.bfignore")" != "*
+.*
+!.bfinit" ]; then
                     TIMESTAMP=$(date +"%Y%m%d%H%M%S")
                     mv "$repo_dir/.bfignore" "$repo_dir/.bfignore_bak_$TIMESTAMP"
                     echo "Backing .bfignore up to .bfignore_bak_$TIMESTAMP"
                 fi
             fi
             echo "*" > "$repo_dir/.bfignore"
-            echo >> "$repo_dir/.bfignore"
-            echo "!/.bfinit" >> "$repo_dir/.bfignore"
+            echo ".*" >> "$repo_dir/.bfignore"
+            echo "!.bfinit" >> "$repo_dir/.bfignore"
             if [ ! -f "$repo_dir/.bfinit" ]; then
                 echo "echo Initialization not implemented: $repo_dir/.bfinit" > "$repo_dir/.bfinit"
                 echo "Initialization skipped: $repo_dir/.bfinit"
